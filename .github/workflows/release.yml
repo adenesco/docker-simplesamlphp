@@ -16,7 +16,7 @@ jobs:
         run: |
           release_version=$(cat .simplesamlphp_version)
           echo "Release version is ${release_version}"
-          if [[ "$( curl -sfL https://registry.hub.docker.com/v2/repositories/kenchan0130/simplesamlphp/tags | jq --arg version "${release_version}" '.results[] | select(.name == $version)' )" ]]; then
+          if [[ "$( curl -sfL https://registry.hub.docker.com/v2/repositories/adenesco/simplesamlphp/tags | jq --arg version "${release_version}" '.results[] | select(.name == $version)' )" ]]; then
             echo "${release_version} is already released."
             echo "::set-output name=release::none"
           else
@@ -26,7 +26,7 @@ jobs:
         if: ${{ steps.check-docker-registory.outputs.release == 'required' }}
         env:
           REGISTRY_HOST: index.docker.io
-          DOCKERHUB_USERNAME: kenchan0130
+          DOCKERHUB_USERNAME: adenesco
         run: |
           make build
           echo ${{ secrets.DOCKERHUB_ACCESS_TOKEN }} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin
@@ -35,6 +35,6 @@ jobs:
         if: ${{ steps.check-docker-registory.outputs.release == 'required' }}
         uses: peter-evans/dockerhub-description@v2.4.2
         env:
-          DOCKERHUB_USERNAME: kenchan0130
+          DOCKERHUB_USERNAME: adenesco
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-          DOCKERHUB_REPOSITORY: kenchan0130/simplesamlphp
+          DOCKERHUB_REPOSITORY: adenesco/simplesamlphp

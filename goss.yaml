@@ -9,7 +9,7 @@ port:
       - 0.0.0.0
 
 http:
-  http://localhost:8080:
+  http://localhost:8089:
     status: 200
     no-follow-redirects: false
     timeout: 1000

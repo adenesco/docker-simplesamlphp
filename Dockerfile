@@ -1,8 +1,8 @@
 FROM php:7.4-apache
-LABEL maintainer "Tadayuki Onishi <tt.tanishi100@gmail.com>"
+LABEL maintainer "adenesco"
 
 RUN apt-get update && \
-    apt-get -y install apt-transport-https git curl vim --no-install-recommends && \
+    apt-get -y install apt-transport-https git curl vim openssh-server --no-install-recommends && \
     rm -r /var/lib/apt/lists/*
 
 RUN curl -sSL -o /tmp/mo https://git.io/get-mo && \
@@ -15,6 +15,13 @@ ARG IMAGE_NAME=unkown
 LABEL git-revision=$GIT_REVISION \
       git-origin=$GIT_ORIGIN \
       image-name=$IMAGE_NAME
+
+# Configure SSHD with disabled auth
+RUN sed -ri 's/#PermitEmptyPasswords no/PermitEmptyPasswords yes/' /etc/ssh/sshd_config &&\
+    sed -ri 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config &&\
+    sed -ri 's/^UsePAM yes/UsePAM no/' /etc/ssh/sshd_config &&\
+    sed -ri "s/#Port 22/Port 2222/" /etc/ssh/sshd_config &&\
+    passwd -d root
 
 # SimpleSAMLphp
 ARG SIMPLESAMLPHP_VERSION
@@ -30,7 +37,7 @@ COPY config/simplesamlphp/server.crt /var/www/simplesamlphp/cert/
 COPY config/simplesamlphp/server.pem /var/www/simplesamlphp/cert/
 
 # Apache
-ENV HTTP_PORT 8080
+ENV HTTP_PORT 8089
 
 COPY config/apache/ports.conf.mo /tmp
 RUN /tmp/mo /tmp/ports.conf.mo > /etc/apache2/ports.conf
@@ -48,4 +55,10 @@ RUN rm -rf /tmp/*
 WORKDIR /var/www/simplesamlphp
 
 # General setup
+EXPOSE 2222
 EXPOSE ${HTTP_PORT}
+
+RUN mkdir /docker-entrypoint.d
+COPY docker-entrypoint.sh /usr/local/bin/
+
+ENTRYPOINT ["docker-entrypoint.sh"]
